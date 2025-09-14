@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -12,18 +13,25 @@ export default function Home() {
           height={38}
           priority
         />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+        
+        <div className="text-center sm:text-left">
+          <h1 className="text-4xl font-bold mb-4">مرحباً بك في Next.js + shadcn/ui</h1>
+          <p className="text-muted-foreground mb-6">
+            مشروع Next.js مع Tailwind CSS و shadcn/ui جاهز للاستخدام
+          </p>
+        </div>
+
+        <div className="flex gap-4 items-center flex-col sm:flex-row">
+          <Button size="lg">
+            زر أساسي
+          </Button>
+          <Button variant="outline" size="lg">
+            زر ثانوي
+          </Button>
+          <Button variant="destructive" size="lg">
+            زر تحذيري
+          </Button>
+        </div>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a

@@ -2,22 +2,64 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { login, user, isLoading } = useAuth();
+  const router = useRouter();
+  const { showToast } = useToast();
+
+  // توجيه المستخدم إذا كان مسجل دخوله بالفعل
+  useEffect(() => {
+    if (user && !isLoading) {
+      // إظهار Toast ترحيبي
+      showToast({
+        type: 'success',
+        title: `مرحباً ${user.name}!`,
+        message: user.role === 'admin' 
+          ? 'تم تسجيل دخولك كمدير بنجاح' 
+          : 'تم تسجيل دخولك كمستخدم بنجاح',
+        duration: 4000
+      });
+
+      // تأخير التوجيه قليلاً لإظهار Toast
+      setTimeout(() => {
+        if (user.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/user');
+        }
+      }, 1000);
+    }
+  }, [user, isLoading, router, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // محاكاة عملية تسجيل الدخول
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("تم تسجيل الدخول بنجاح!");
-    }, 2000);
+    setError("");
+    
+    const success = await login(email, password);
+    
+    if (success) {
+      // سيتم التوجيه تلقائياً في useEffect مع Toast ترحيبي
+    } else {
+      const errorMessage = "فشل في تسجيل الدخول. يرجى التحقق من البيانات المدخلة.";
+      setError(errorMessage);
+      
+      // إظهار Toast خطأ
+      showToast({
+        type: 'error',
+        title: 'خطأ في تسجيل الدخول',
+        message: errorMessage,
+        duration: 5000
+      });
+    }
   };
 
   return (
@@ -50,6 +92,17 @@ export default function LoginPage() {
               </motion.h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                  <motion.div
+                    className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm text-center"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {error}
+                  </motion.div>
+                )}
+                
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -169,16 +222,9 @@ export default function LoginPage() {
               >
                 الجمهورية العربية السورية
               </motion.h1>
+              
               <motion.p 
-                className="text-green-300 text-xl mb-2 text-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                Syrian Arab Republic
-              </motion.p>
-              <motion.p 
-                className="text-white/80 text-lg text-center"
+                className="text-white/80 text-xl text-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
@@ -256,6 +302,17 @@ export default function LoginPage() {
             </motion.h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <motion.div
+                  className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm text-center"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {error}
+                </motion.div>
+              )}
+              
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}

@@ -3,22 +3,59 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function SuperAdminLayout({
+export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout, isLoading } = useAuth();
+  const router = useRouter();
+
+  // التأكد من أن المستخدم مسجل دخوله
+  useEffect(() => {
+    // انتظار انتهاء التحميل أولاً
+    if (isLoading) return;
+    
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role === 'admin') {
+      router.push('/admin');
+      return;
+    }
+  }, [user, isLoading, router]);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   const menuItems = [
-    { name: "لوحة التحكم", icon: "📊", href: "/super-admin" },
-    { name: "المستخدمين", icon: "👥", href: "/super-admin/users" },
-    { name: "الإعدادات", icon: "⚙️", href: "/super-admin/settings" },
-    { name: "التقارير", icon: "📈", href: "/super-admin/reports" },
-    { name: "الأمان", icon: "🔒", href: "/super-admin/security" },
-    { name: "النسخ الاحتياطي", icon: "💾", href: "/super-admin/backup" },
+    { name: "لوحة التحكم", icon: "📊", href: "/user" },
+ 
+    { name: "الإنجازات", icon: "🏆", href: "/user/achievements" },
+    { name: "القضايا", icon: "⚖️", href: "/user/issues" },
+    { name: "الجولات الميدانية", icon: "🗺️", href: "/user/tours" },
+    { name: "الزيارات المدنية", icon: "🏛️", href: "/user/visits" },
+
   ];
+
+  if (!user || user.role === 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#012623' }}>
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p>جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#012623' }} dir="rtl">
@@ -33,22 +70,28 @@ export default function SuperAdminLayout({
           <div className="flex  justify-between items-center h-20">
             {/* Logo and Title */}
             <div className="flex items-center space-x-8">
-              <Image
-                src="/logo.png"
-                alt="شعار الجمهورية العربية السورية"
-                width={70}
-                height={70}
-                
-              />
+              <motion.div
+                onClick={() => router.push('/user')}
+                className="cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Image
+                  src="/logo.png"
+                  alt="شعار الجمهورية العربية السورية"
+                  width={70}
+                  height={70}
+                />
+              </motion.div>
               <div className="text-right hidden sm:block p-2">
-                <h1 className="text-xl font-bold text-white">نظام الإدارة </h1>
+                <h1 className="text-xl font-bold text-white"> لوحة تحكم المستخدم </h1>
                 <p className="text-green-300 text-sm">الجمهورية العربية السورية</p>
               </div>
             </div>
             
             {/* Mobile Title */}
             <div className="text-center sm:hidden">
-              <h1 className="text-lg font-bold text-white">نظام الإدارة </h1>
+              <h1 className="text-lg font-bold text-white"> لوحة تحكم المستخدم </h1>
               <p className="text-green-300 text-sm">الجمهورية العربية السورية</p>
             </div>
 
@@ -64,19 +107,25 @@ export default function SuperAdminLayout({
               </svg>
             </motion.button>
 
-            {/* Desktop Sidebar Toggle Button */}
-           
-
-            {/* User info */}
+            
             <div className="hidden md:flex items-center space-x-8">
-            <div className="w-10 h-10  bg-yellow-400 rounded-full flex items-center justify-center">
-                <span className="text-black font-bold">أ</span>
-              </div>
-              <div className="text-right pr-4">
-                <p className="text-white font-medium">المدير العام</p>
-                <p className="text-green-300 text-sm">admin@interior.gov.sy</p>
-              </div>
-             
+              {user && (
+                <>
+                  <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
+                    <span className="text-black font-bold">{user.name.charAt(0)}</span>
+                  </div>
+                  <div className="text-right pr-4">
+                    <p className="text-white font-medium">{user.name}</p>
+                    <p className="text-green-300 text-sm">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                  >
+                    تسجيل الخروج
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -85,7 +134,7 @@ export default function SuperAdminLayout({
       <div className="flex">
         {/* Desktop Sidebar - Always Visible */}
         <motion.aside 
-          className="hidden md:block w-80 bg-white/10 backdrop-blur-lg border-r border-white/20 shadow-2xl"
+          className="hidden md:block w-80 h-screen bg-white/10 backdrop-blur-lg border-r border-white/20 shadow-2xl"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -94,8 +143,8 @@ export default function SuperAdminLayout({
          
           
           {/* Navigation Menu */}
-          <div className="p-6">
-            <nav className="space-y-3">
+          <div className="p-4">
+            <nav className="space-y-1">
               {menuItems.map((item, index) => (
                 <motion.a
                   key={item.name}
@@ -115,17 +164,7 @@ export default function SuperAdminLayout({
           </div>
 
           {/* Sidebar Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/20">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">🔒</span>
-              </div>
-              <div className="text-right">
-                <p className="text-white font-medium">اتصال آمن</p>
-                <p className="text-green-300 text-sm">مشفر 256-bit</p>
-              </div>
-            </div>
-          </div>
+         
         </motion.aside>
 
         {/* Mobile Sidebar - Toggleable */}
@@ -142,7 +181,7 @@ export default function SuperAdminLayout({
             
             {/* Mobile Sidebar Panel */}
             <motion.aside 
-              className="fixed inset-y-0 right-0 z-50 w-80 bg-white/10 backdrop-blur-lg border-r border-white/20 shadow-2xl md:hidden"
+              className="fixed inset-0 right-0 z-50 w-96 h-screen bg-white/10 backdrop-blur-lg border-r border-white/20 shadow-2xl md:hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -186,17 +225,7 @@ export default function SuperAdminLayout({
               </div>
 
               {/* Mobile Sidebar Footer */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/20">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">🔒</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white font-medium">اتصال آمن</p>
-                    <p className="text-green-300 text-sm">مشفر 256-bit</p>
-                  </div>
-                </div>
-              </div>
+           
             </motion.aside>
           </>
         )}

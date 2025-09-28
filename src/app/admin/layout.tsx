@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function UserLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ export default function UserLayout({
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
 
-  // التأكد من أن المستخدم مسجل دخوله
+  // التأكد من أن المستخدم مسجل دخوله وله صلاحيات admin
   useEffect(() => {
     // انتظار انتهاء التحميل أولاً
     if (isLoading) return;
@@ -25,8 +25,8 @@ export default function UserLayout({
       router.push('/login');
       return;
     }
-    if (user.role === 'admin') {
-      router.push('/admin');
+    if (user.role !== 'admin') {
+      router.push('/user');
       return;
     }
   }, [user, isLoading, router]);
@@ -37,17 +37,11 @@ export default function UserLayout({
   };
 
   const menuItems = [
-    { name: "لوحة التحكم", icon: "📊", href: "/user" },
- 
-    { name: "الإنجازات", icon: "🏆", href: "/user/achievements" },
-    { name: "القضايا", icon: "⚖️", href: "/user/issues" },
-    { name: "الجولات الميدانية", icon: "🗺️", href: "/user/tours" },
-    { name: "الزيارات المدنية", icon: "🏛️", href: "/user/visits" },
-    { name: "التقارير", icon: "📈", href: "/user/reports" },
-
+    { name: "لوحة التحكم", icon: "📊", href: "/admin" },
+    { name: "المستخدمين", icon: "👥", href: "/admin/users" },
   ];
 
-  if (!user || user.role === 'admin') {
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#012623' }}>
         <div className="text-white text-center">
@@ -68,11 +62,11 @@ export default function UserLayout({
         transition={{ duration: 0.6 }}
       >
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex  justify-between items-center h-20">
+          <div className="flex justify-between items-center h-20">
             {/* Logo and Title */}
             <div className="flex items-center space-x-8">
               <motion.div
-                onClick={() => router.push('/user')}
+                onClick={() => router.push('/admin')}
                 className="cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -85,15 +79,15 @@ export default function UserLayout({
                 />
               </motion.div>
               <div className="text-right hidden sm:block p-2">
-                <h1 className="text-xl font-bold text-white"> لوحة تحكم المستخدم </h1>
-                <p className="text-green-300 text-sm">الجمهورية العربية السورية</p>
+                <h1 className="text-xl font-bold text-white">لوحة تحكم المدير</h1>
+                <p className="text-red-300 text-sm">الجمهورية العربية السورية</p>
               </div>
             </div>
             
             {/* Mobile Title */}
             <div className="text-center sm:hidden">
-              <h1 className="text-lg font-bold text-white"> لوحة تحكم المستخدم </h1>
-              <p className="text-green-300 text-sm">الجمهورية العربية السورية</p>
+              <h1 className="text-lg font-bold text-white">لوحة تحكم المدير</h1>
+              <p className="text-red-300 text-sm">الجمهورية العربية السورية</p>
             </div>
 
             {/* Mobile menu button */}
@@ -112,12 +106,14 @@ export default function UserLayout({
             <div className="hidden md:flex items-center space-x-8">
               {user && (
                 <>
-                  <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
-                    <span className="text-black font-bold">{user.name.charAt(0)}</span>
+                  <div className="w-10 h-10 bg-red-400 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">{user.name.charAt(0)}</span>
                   </div>
                   <div className="text-right pr-4">
                     <p className="text-white font-medium">{user.name}</p>
-                    <p className="text-green-300 text-sm">{user.email}</p>
+                    <p className="text-red-300 text-sm truncate max-w-32" title={user.email}>
+                      {user.email}
+                    </p>
                   </div>
                   <button
                     onClick={handleLogout}
@@ -141,7 +137,7 @@ export default function UserLayout({
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           {/* Sidebar Header */}
-         
+        
           
           {/* Navigation Menu */}
           <div className="p-4">
@@ -165,7 +161,12 @@ export default function UserLayout({
           </div>
 
           {/* Sidebar Footer */}
-         
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
+            <div className="text-center">
+              <p className="text-white/60 text-xs">نظام الإدارة</p>
+              <p className="text-red-300 text-xs">وزارة الداخلية</p>
+            </div>
+          </div>
         </motion.aside>
 
         {/* Mobile Sidebar - Toggleable */}
@@ -190,7 +191,12 @@ export default function UserLayout({
             >
               {/* Mobile Sidebar Header */}
               <div className="flex items-center justify-between p-6 border-b border-white/20">
-                <h2 className="text-xl font-bold text-white">القائمة الرئيسية</h2>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-lg">🔐</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">لوحة الإدارة</h2>
+                </div>
                 <motion.button
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 rounded-lg text-white hover:bg-white/20 transition-colors"
@@ -226,7 +232,12 @@ export default function UserLayout({
               </div>
 
               {/* Mobile Sidebar Footer */}
-           
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
+                <div className="text-center">
+                  <p className="text-white/60 text-xs">نظام الإدارة</p>
+                  <p className="text-red-300 text-xs">وزارة الداخلية</p>
+                </div>
+              </div>
             </motion.aside>
           </>
         )}

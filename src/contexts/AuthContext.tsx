@@ -152,15 +152,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // تحديث الـ token الجديد
       const newToken = data.token || data.access_token;
       if (newToken) {
+        // تحديث جميع الأماكن بالـ token الجديد
         setToken(newToken);
         localStorage.setItem('auth_token', newToken);
-        
-        // تحديث الـ token في cookies أيضاً
-        document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 أيام
+        document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}`;
         
         // تحديث API client بالـ token الجديد
         apiClient.updateToken(newToken);
         
+        console.log('تم تحديث الـ token بنجاح');
         return true;
       }
       

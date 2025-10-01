@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
@@ -57,6 +56,7 @@ export default function ReportsPage() {
   const [documents, setDocuments] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) {
@@ -75,6 +75,7 @@ export default function ReportsPage() {
       setLoading(true);
       setError(null);
       
+      // استخدام apiClient الذي يحتوي على منطق التحديث التلقائي
       const response = await fetch('http://127.0.0.1:8000/api/user/documents', {
         method: 'GET',
         headers: {
@@ -93,7 +94,12 @@ export default function ReportsPage() {
     } catch (err) {
       console.error('خطأ في جلب البيانات:', err);
       setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع');
-      showToast('خطأ في جلب البيانات', 'error');
+      showToast({
+        type: 'error',
+        title: 'خطأ في جلب البيانات',
+        message: err instanceof Error ? err.message : 'حدث خطأ غير متوقع',
+        duration: 5000
+      });
     } finally {
       setLoading(false);
     }
@@ -106,6 +112,224 @@ export default function ReportsPage() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // دالة الطباعة
+  const handlePrint = () => {
+    if (!reportRef.current) return;
+    
+    // إنشاء نافذة طباعة جديدة
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    // الحصول على محتوى الوثيقة مع الحفاظ على التنسيق
+    const documentContent = reportRef.current.innerHTML;
+    
+    // إنشاء HTML كامل للطباعة مع تنسيق مطابق للعرض
+    const printHTML = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>التقرير الشهري</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: Arial, Tahoma, sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: white;
+            color: black;
+            line-height: 1.6;
+          }
+          
+          .print-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+          }
+          
+          /* تنسيق الهيدر */
+          .flex {
+            display: flex;
+          }
+          
+          .justify-between {
+            justify-content: space-between;
+          }
+          
+          .items-start {
+            align-items: flex-start;
+          }
+          
+          .mb-8 {
+            margin-bottom: 2rem;
+          }
+          
+          .text-right {
+            text-align: right;
+          }
+          
+          .text-left {
+            text-align: left;
+          }
+          
+          .text-lg {
+            font-size: 1.125rem;
+          }
+          
+          .font-semibold {
+            font-weight: 600;
+          }
+          
+          .flex-shrink-0 {
+            flex-shrink: 0;
+          }
+          
+          .mx-8 {
+            margin-left: 2rem;
+            margin-right: 2rem;
+          }
+          
+          /* تنسيق العنوان الرئيسي */
+          .text-center {
+            text-align: center;
+          }
+          
+          .text-3xl {
+            font-size: 1.875rem;
+          }
+          
+          .font-bold {
+            font-weight: 700;
+          }
+          
+          .pl-20 {
+            padding-left: 5rem;
+          }
+          
+          /* تنسيق المحتوى */
+          .text-black {
+            color: black;
+          }
+          
+          .text-lg {
+            font-size: 1.125rem;
+          }
+          
+          .leading-relaxed {
+            line-height: 1.625;
+          }
+          
+          .mb-6 {
+            margin-bottom: 1.5rem;
+          }
+          
+          .mb-2 {
+            margin-bottom: 0.5rem;
+          }
+          
+          .mb-4 {
+            margin-bottom: 1rem;
+          }
+          
+          .mb-3 {
+            margin-bottom: 0.75rem;
+          }
+          
+          .mb-8 {
+            margin-bottom: 2rem;
+          }
+          
+          /* تنسيق الأقسام */
+          .text-blue-800 {
+            color: #1e40af;
+          }
+          
+          .font-semibold {
+            font-weight: 600;
+          }
+          
+          .mr-6 {
+            margin-right: 1.5rem;
+          }
+          
+          .text-sm {
+            font-size: 0.875rem;
+          }
+          
+          .mt-1 {
+            margin-top: 0.25rem;
+          }
+          
+          /* تنسيق الفوتر */
+          .mt-12 {
+            margin-top: 3rem;
+          }
+          
+          .pl-16 {
+            padding-left: 4rem;
+          }
+          
+          /* تنسيق الصور */
+          img {
+            max-width: 120px;
+            height: auto;
+            display: block;
+          }
+          
+          .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+          }
+          
+          /* تنسيق الطباعة */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+              background: white !important;
+            }
+            
+            .print-container {
+              max-width: none;
+              margin: 0;
+              padding: 20px;
+            }
+            
+            @page {
+              margin: 1cm;
+              size: A4;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          ${documentContent}
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // كتابة المحتوى في النافذة الجديدة
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+    
+    // انتظار تحميل الصور ثم الطباعة
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 1000);
+    };
   };
 
   if (loading) {
@@ -121,266 +345,202 @@ export default function ReportsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#012623' }}>
-        <div className="text-white text-center">
-          <div className="text-red-400 text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold mb-4">خطأ في التحميل</h2>
-          <p className="text-white/80 mb-6">{error}</p>
-          <motion.button
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold mb-4 text-black">خطأ في التحميل</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
             onClick={fetchDocuments}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-300"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             إعادة المحاولة
-          </motion.button>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#012623' }} dir="rtl">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Image
-            src="/logo.png"
-            alt="شعار الجمهورية العربية السورية"
-            width={120}
-            height={120}
-            className="mx-auto mb-6"
-          />
-          <h1 className="text-4xl font-bold text-white mb-2">التقرير الشامل</h1>
-          <p className="text-green-300 text-xl">الجمهورية العربية السورية - وزارة الداخلية</p>
-          <p className="text-white/80 text-lg mt-2">
-            تقرير شامل لجميع الأنشطة والإنجازات - {new Date().toLocaleDateString('ar-SA')}
-          </p>
-        </motion.div>
+    <>
+      {/* CSS للطباعة */}
+      <style jsx global>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          body {
+            background: white !important;
+          }
+          .print-container {
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 20px !important;
+          }
+        }
+      `}</style>
+      
+      <div className="min-h-screen max-w-5xl mx-auto bg-white" dir="rtl">
 
-        {/* Report Content */}
-        <motion.div
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
+      <div className="max-w-4xl mx-auto p-8 print-container" ref={reportRef}>
+        {/* Document Header */}
+        <div className="flex justify-between items-start mb-8">
+          {/* English Text - Left */}
+        
+          <div className="text-right text-black">
+            <div className="text-lg font-semibold">الجمهورية العربية السورية</div>
+            <div className="text-lg font-semibold">وزارة الداخلية</div>
+            <div className="text-lg font-semibold">قيادة الأمن الداخلي بدير الزور</div>
+            <div className="text-lg font-semibold mt-2">{user?.name}</div>
+          </div>
+          
+          <div className="flex-shrink-0 mx-8">
+            <Image
+              src="/logo.png"
+              alt="شعار الجمهورية العربية السورية"
+              width={120}
+              height={120}
+              className="mx-auto"
+            />
+          </div>
+
+          {/* Arabic Text - Right */}
+          <div className="text-left text-black">
+            <div className="text-lg font-semibold">Syrian Arab Republic</div>
+            <div className="text-lg font-semibold">Ministry of Interior</div>
+            <div className="text-lg font-semibold">Internal Security Command - Deir ez-Zor</div>
+          </div>
+        
+        </div>
+
+        {/* Main Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-black pl-20">التقرير الشهري</h1>
+        </div>
+
+        {/* Report Body */}
+        <div className="text-black text-lg leading-relaxed">
+          {/* Introduction */}
+          <div className="mb-6">
+            <div className="mb-2">السيد مسؤول الإدارة العامة</div>
+            <div className="mb-4">نرفع لحاشيتكم التقرير الشهري (الأنجازات) ويتضمن :</div>
+          </div>
+
           {/* Achievements Section */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
-              <span className="text-4xl mr-3">🏆</span>
-              الإنجازات ({documents?.achievments?.length || 0})
-            </h2>
-            
+          <div className="mb-4">
+            <div className="text-blue-800 font-semibold mb-2">- الإنجازات الخاصة بهذا الشهر :</div>
             {documents?.achievments && documents.achievments.length > 0 ? (
-              <div className="grid gap-4">
+              <div className="mr-6">
                 {documents.achievments.map((achievement, index) => (
-                  <motion.div
-                    key={achievement.id}
-                    className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-bold text-white">{achievement.title}</h3>
-                      <span className="text-green-300 text-sm bg-green-500/20 px-3 py-1 rounded-full">
-                        {formatDate(achievement.date)}
-                      </span>
+                  <div key={achievement.id} className="mb-3">
+                    <div className="text-sm">
+                      • قام الأخ {achievement.name} الملقب ب{achievement.title} ب{achievement.description}
                     </div>
-                    <p className="text-white/80 mb-2">
-                      <span className="font-semibold text-green-300">الاسم:</span> {achievement.name}
-                    </p>
-                    <p className="text-white/70 text-sm leading-relaxed">{achievement.description}</p>
-                  </motion.div>
+                    <div className="text-sm text-left mt-1">
+                      وذلك بتاريخ {achievement.date}
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">📝</div>
-                <p className="text-white/60 text-lg">لا توجد إنجازات مسجلة</p>
-              </div>
+              <div className="mr-6">لا يوجد إنجازات لهذا الشهر</div>
             )}
-          </motion.div>
+          </div>
 
           {/* Issues Section */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
-              <span className="text-4xl mr-3">⚖️</span>
-              القضايا ({documents?.issues?.length || 0})
-            </h2>
-            
+          <div className="mb-4">
+            <div className="text-blue-800 font-semibold mb-2">- المتابعات الخاصة بهذا الشهر :</div>
             {documents?.issues && documents.issues.length > 0 ? (
-              <div className="grid gap-4">
+              <div className="mr-6">
                 {documents.issues.map((issue, index) => (
-                  <motion.div
-                    key={issue.id}
-                    className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-bold text-white">{issue.title}</h3>
-                      <span className="text-blue-300 text-sm bg-blue-500/20 px-3 py-1 rounded-full">
-                        {formatDate(issue.date)}
-                      </span>
+                  <div key={issue.id} className="mb-3">
+                    <div className="text-sm">
+                      • قام الأخ {issue.name} الملقب ب{issue.title} ب{issue.description}
                     </div>
-                    <p className="text-white/80 mb-2">
-                      <span className="font-semibold text-blue-300">الاسم:</span> {issue.name}
-                    </p>
-                    <p className="text-white/70 text-sm leading-relaxed">{issue.description}</p>
-                  </motion.div>
+                    <div className="text-sm text-left mt-1">
+                      وذلك بتاريخ {issue.date}
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">📋</div>
-                <p className="text-white/60 text-lg">لا توجد قضايا مسجلة</p>
-              </div>
+              <div className="mr-6">لا يوجد متابعات لهذا الشهر</div>
             )}
-          </motion.div>
+          </div>
 
           {/* Tours Section */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
-              <span className="text-4xl mr-3">🗺️</span>
-              الجولات الميدانية ({documents?.tours?.length || 0})
-            </h2>
-            
+          <div className="mb-4">
+            <div className="text-blue-800 font-semibold mb-2">- الجولات الميدانية الخاصة بهذا الشهر :</div>
             {documents?.tours && documents.tours.length > 0 ? (
-              <div className="grid gap-4">
+              <div className="mr-6">
                 {documents.tours.map((tour, index) => (
-                  <motion.div
-                    key={tour.id}
-                    className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-bold text-white">{tour.title}</h3>
-                      <span className="text-purple-300 text-sm bg-purple-500/20 px-3 py-1 rounded-full">
-                        {formatDate(tour.date)}
-                      </span>
+                  <div key={tour.id} className="mb-3">
+                    <div className="text-sm">
+                      • قام الأخ {tour.name} الملقب ب{tour.title} ب{tour.description}
                     </div>
-                    <p className="text-white/80 mb-2">
-                      <span className="font-semibold text-purple-300">الاسم:</span> {tour.name}
-                    </p>
-                    <p className="text-white/70 text-sm leading-relaxed">{tour.description}</p>
-                  </motion.div>
+                    <div className="text-sm text-left mt-1">
+                      وذلك بتاريخ {tour.date}
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">🚶‍♂️</div>
-                <p className="text-white/60 text-lg">لا توجد جولات ميدانية مسجلة</p>
-              </div>
+              <div className="mr-6">لا يوجد جولات ميدانية لهذا الشهر</div>
             )}
-          </motion.div>
+          </div>
 
           {/* Visits Section */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
-              <span className="text-4xl mr-3">🏛️</span>
-              الزيارات المدنية ({documents?.visits?.length || 0})
-            </h2>
-            
+          <div className="mb-8">
+            <div className="text-blue-800 font-semibold mb-2">- الزيارات المدنية الخاصة بهذا الشهر :</div>
             {documents?.visits && documents.visits.length > 0 ? (
-              <div className="grid gap-4">
+              <div className="mr-6">
                 {documents.visits.map((visit, index) => (
-                  <motion.div
-                    key={visit.id}
-                    className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-bold text-white">{visit.title}</h3>
-                      <span className="text-orange-300 text-sm bg-orange-500/20 px-3 py-1 rounded-full">
-                        {formatDate(visit.date)}
-                      </span>
+                  <div key={visit.id} className="mb-3">
+                    <div className="text-sm">
+                      • قام الأخ {visit.name} الملقب ب{visit.title} ب{visit.description}
                     </div>
-                    <p className="text-white/80 mb-2">
-                      <span className="font-semibold text-orange-300">الاسم:</span> {visit.name}
-                    </p>
-                    <p className="text-white/70 text-sm leading-relaxed">{visit.description}</p>
-                  </motion.div>
+                    <div className="text-sm text-left mt-1">
+                      وذلك بتاريخ {visit.date}
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">🏢</div>
-                <p className="text-white/60 text-lg">لا توجد زيارات مدنية مسجلة</p>
-              </div>
+              <div className="mr-6">لا يوجد زيارات مدنية لهذا الشهر</div>
             )}
-          </motion.div>
-
-          {/* Summary */}
-          <motion.div
-            className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-lg rounded-xl p-6 border border-white/20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-4 text-center">ملخص التقرير</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="text-3xl font-bold text-green-300">{documents?.achievments?.length || 0}</div>
-                <div className="text-white/80 text-sm">الإنجازات</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="text-3xl font-bold text-blue-300">{documents?.issues?.length || 0}</div>
-                <div className="text-white/80 text-sm">القضايا</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="text-3xl font-bold text-purple-300">{documents?.tours?.length || 0}</div>
-                <div className="text-white/80 text-sm">الجولات</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="text-3xl font-bold text-orange-300">{documents?.visits?.length || 0}</div>
-                <div className="text-white/80 text-sm">الزيارات</div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Footer */}
-        <motion.div
-          className="text-center mt-8 text-white/60"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1 }}
-        >
-          <p>تم إنشاء هذا التقرير في {new Date().toLocaleDateString('ar-SA')} - وزارة الداخلية</p>
-        </motion.div>
+        <div className="text-left text-black mt-12">
+          <div className="mb-2">دير الزور في: {new Date().toLocaleDateString('en-GB')}</div>
+          <div className='pl-16'>{user?.name}</div>
+        </div>
+      </div>
+
+      {/* أزرار التحكم - خارج الوثيقة تماماً */}
+      <div className=" py-8 no-print">
+        <div className="max-w-4xl mx-auto px-8">
+          <div className="flex justify-center">
+            <button
+              id="print-button"
+              onClick={handlePrint}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl shadow-lg transition-all duration-300 flex items-center space-x-3 rtl:space-x-reverse transform hover:scale-105 hover:shadow-xl"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span className="font-semibold text-lg">طباعة التقرير</span>
+            </button>
+          </div>
+          
+          {/* معلومات إضافية */}
+          <div className="text-center mt-6 text-gray-600 text-sm">
+            <p>يمكنك طباعة التقرير مباشرة</p>
+          </div>
+        </div>
       </div>
     </div>
+    </>
   );
 }

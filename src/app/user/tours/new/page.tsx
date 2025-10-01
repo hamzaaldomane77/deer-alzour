@@ -172,7 +172,7 @@ export default function NewTourPage() {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <label htmlFor="title" className="block text-sm font-medium text-green-300 mb-2">
-              العنوان *
+            اللقب *
             </label>
             <input
               type="text"

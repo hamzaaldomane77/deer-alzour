@@ -132,10 +132,10 @@ export default function UserLayout({
         </div>
       </motion.header>
 
-      <div className="flex">
+      <div className="flex min-h-screen">
         {/* Desktop Sidebar - Always Visible */}
         <motion.aside 
-          className="hidden md:block w-80 h-screen bg-white/10 backdrop-blur-lg border-r border-white/20 shadow-2xl"
+          className="hidden md:block w-80 min-h-screen bg-white/10 backdrop-blur-lg border-r border-white/20 shadow-2xl"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}

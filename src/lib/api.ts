@@ -59,7 +59,11 @@ class ApiClient {
             const newToken = refreshData.token || refreshData.access_token;
             
             if (newToken) {
+              // تحديث الـ token في جميع الأماكن
               this.updateToken(newToken);
+              localStorage.setItem('auth_token', newToken);
+              document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}`;
+              
               // إعادة المحاولة مع الـ token الجديد
               const retryResponse = await fetch(response.url, {
                 method: response.url.includes('refresh') ? 'POST' : 'GET',
@@ -73,6 +77,11 @@ class ApiClient {
           }
         } catch (refreshError) {
           console.error('فشل في تحديث الـ token:', refreshError);
+          // إذا فشل التحديث، قم بتسجيل الخروج
+          this.clearToken();
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
       }
 

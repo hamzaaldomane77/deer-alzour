@@ -417,7 +417,7 @@ export default function LoginPage() {
           animate={{ opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         >
-          © 2024 وزارة الداخلية - الجمهورية العربية السورية
+          © 2025 وزارة الداخلية - الجمهورية العربية السورية
         </motion.p>
       </motion.div>
     </div>

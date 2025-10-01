@@ -15,11 +15,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
   
-  // إذا كان المستخدم مسجل دخوله ويحاول الوصول لصفحة تسجيل الدخول
-  if (pathname === '/login' && token) {
-    // التحقق من نوع المستخدم من خلال API أو إعادة توجيه افتراضية
-    return NextResponse.redirect(new URL('/user', request.url));
-  }
+  // لا نعيد توجيه المستخدم من صفحة تسجيل الدخول حتى لو كان لديه token
+  // نترك AuthContext يتعامل مع هذا
   
   return NextResponse.next();
 }

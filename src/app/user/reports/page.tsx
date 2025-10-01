@@ -394,7 +394,7 @@ export default function ReportsPage() {
             <div className="text-lg font-semibold mt-2">{user?.name}</div>
           </div>
           
-          <div className="flex-shrink-0 mx-8">
+          <div className="flex-shrink-0">
             <Image
               src="/logo.png"
               alt="شعار الجمهورية العربية السورية"
@@ -408,14 +408,15 @@ export default function ReportsPage() {
           <div className="text-left text-black">
             <div className="text-lg font-semibold">Syrian Arab Republic</div>
             <div className="text-lg font-semibold">Ministry of Interior</div>
-            <div className="text-lg font-semibold">Internal Security Command - Deir ez-Zor</div>
+            <div className="text-lg font-semibold">Internal Security Command</div>
+            <div className="text-lg font-semibold"> Deir ez-Zor</div>
           </div>
         
         </div>
 
         {/* Main Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black pl-20">التقرير الشهري</h1>
+          <h1 className="text-3xl font-bold text-black pl-10">التقرير الشهري</h1>
         </div>
 
         {/* Report Body */}

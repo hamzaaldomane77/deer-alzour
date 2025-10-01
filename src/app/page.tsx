@@ -8,7 +8,11 @@ export default function Home() {
 
   useEffect(() => {
     // توجيه المستخدم إلى صفحة تسجيل الدخول عند فتح الصفحة الرئيسية
-    router.push('/login');
+    const timer = setTimeout(() => {
+      router.replace('/login');
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [router]);
 
   return (

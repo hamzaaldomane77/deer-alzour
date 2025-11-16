@@ -10,7 +10,7 @@ import ConfirmDialog from '@/components/ui/confirm-dialog';
 import type { User } from '@/types/user';
 
 export default function UsersPage() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
@@ -96,12 +96,7 @@ export default function UsersPage() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return new Date(dateString).toLocaleDateString('ar-SA');
   };
 
   const getRoleBadge = (role: string) => {
@@ -119,12 +114,12 @@ export default function UsersPage() {
     );
   };
 
-  if (loading) {
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#012623' }}>
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-          <p>جاري تحميل المستخدمين...</p>
+          <p>جاري التحميل...</p>
         </div>
       </div>
     );
@@ -134,120 +129,202 @@ export default function UsersPage() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div
-        className="flex justify-between items-center"
-        initial={{ opacity: 0, y: -20 }}
+        className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">إدارة المستخدمين</h1>
-          <p className="text-white/70">إدارة جميع المستخدمين في النظام</p>
-        </div>
-        <motion.button
-          onClick={() => router.push('/admin/users/new')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-300 flex items-center space-x-2"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <span>➕</span>
-          <span>إضافة مستخدم جديد</span>
-        </motion.button>
-      </motion.div>
-
-      {/* Users Grid */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
-        {users.map((user, index) => (
-          <motion.div
-            key={user.id}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 cursor-pointer group"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-            whileHover={{ scale: 1.02, y: -5 }}
-            onClick={() => router.push(`/admin/users/${user.id}`)}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">{user.name.charAt(0)}</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white group-hover:text-blue-300 transition-colors">
-                    {user.name}
-                  </h3>
-                  <p className="text-white/70 text-sm">{user.email}</p>
-                </div>
-              </div>
-              {getRoleBadge(user.role)}
-            </div>
-
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">تاريخ الإنشاء:</span>
-                <span className="text-white text-sm">{formatDate(user.created_at)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">آخر تحديث:</span>
-                <span className="text-white text-sm">{formatDate(user.updated_at)}</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center pt-4 border-t border-white/20">
-              <motion.button
-                onClick={(e) => { e.stopPropagation(); router.push(`/admin/users/${user.id}/edit`); }}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 text-sm"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                تعديل
-              </motion.button>
-              <motion.button
-                onClick={(e) => { e.stopPropagation(); handleDeleteClick(user); }}
-                disabled={deleting === user.id}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 text-sm disabled:opacity-50"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {deleting === user.id ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>جاري الحذف...</span>
-                  </div>
-                ) : (
-                  'حذف'
-                )}
-              </motion.button>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Empty State */}
-      {users.length === 0 && (
-        <motion.div
-          className="text-center py-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="text-6xl mb-4">👥</div>
-          <h3 className="text-2xl font-bold text-white mb-2">لا يوجد مستخدمين</h3>
-          <p className="text-white/70 mb-6">ابدأ بإضافة مستخدم جديد</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">المستخدمين</h1>
+            <p className="text-green-300 text-lg">إدارة جميع المستخدمين في النظام</p>
+          </div>
           <motion.button
             onClick={() => router.push('/admin/users/new')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-300"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-bold px-6 py-3 rounded-lg transition-all duration-300"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             إضافة مستخدم جديد
           </motion.button>
-        </motion.div>
-      )}
+        </div>
+      </motion.div>
+
+      {/* Users Table */}
+      <motion.div
+        className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-white">جاري تحميل المستخدمين...</p>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="text-6xl mb-4">👥</div>
+            <h3 className="text-xl font-bold text-white mb-2">لا يوجد مستخدمين</h3>
+            <p className="text-green-300 mb-4">ابدأ بإضافة مستخدم جديد</p>
+            <motion.button
+              onClick={() => router.push('/admin/users/new')}
+              className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-bold px-6 py-3 rounded-lg transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              إضافة مستخدم جديد
+            </motion.button>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-white/5">
+                  <tr>
+                    <th className="px-6 py-4 text-right text-white font-bold">الاسم</th>
+                    <th className="px-6 py-4 text-right text-white font-bold">البريد الإلكتروني</th>
+                    <th className="px-6 py-4 text-right text-white font-bold">الدور</th>
+                    <th className="px-6 py-4 text-right text-white font-bold">الفرع</th>
+                    <th className="px-6 py-4 text-right text-white font-bold">المكتب</th>
+                    <th className="px-6 py-4 text-right text-white font-bold">تاريخ الإنشاء</th>
+                    <th className="px-6 py-4 text-center text-white font-bold">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((userItem, index) => (
+                    <motion.tr
+                      key={userItem.id}
+                      className="border-b border-white/10 hover:bg-white/5 transition-colors"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                    >
+                      <td className="px-6 py-4 text-white">
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold">{userItem.name.charAt(0)}</span>
+                          </div>
+                          <span className="font-medium">{userItem.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-white/80">{userItem.email}</td>
+                      <td className="px-6 py-4">{getRoleBadge(userItem.role)}</td>
+                      <td className="px-6 py-4 text-green-300">{userItem.branch?.name || '-'}</td>
+                      <td className="px-6 py-4 text-white/80">{userItem.office?.name || '-'}</td>
+                      <td className="px-6 py-4 text-white/80">{formatDate(userItem.created_at)}</td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex justify-center space-x-2 rtl:space-x-reverse">
+                          <motion.button
+                            onClick={() => router.push(`/admin/users/${userItem.id}`)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            عرض
+                          </motion.button>
+                          <motion.button
+                            onClick={() => router.push(`/admin/users/${userItem.id}/edit`)}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            تعديل
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleDeleteClick(userItem)}
+                            disabled={deleting === userItem.id}
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors disabled:opacity-50"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {deleting === userItem.id ? 'جاري...' : 'حذف'}
+                          </motion.button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile/Tablet Cards */}
+            <div className="lg:hidden p-4 space-y-4">
+              {users.map((userItem, index) => (
+                <motion.div
+                  key={userItem.id}
+                  className="bg-white/5 rounded-xl p-4 border border-white/10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                >
+                  <div className="space-y-3">
+                    {/* User Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">{userItem.name.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-white font-bold text-lg">{userItem.name}</h3>
+                          <p className="text-white/70 text-sm">{userItem.email}</p>
+                        </div>
+                      </div>
+                      {getRoleBadge(userItem.role)}
+                    </div>
+
+                    {/* User Details */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-white/60">الفرع:</span>
+                        <span className="text-green-300">{userItem.branch?.name || '-'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/60">المكتب:</span>
+                        <span className="text-white/80">{userItem.office?.name || '-'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/60">تاريخ الإنشاء:</span>
+                        <span className="text-white/80">{formatDate(userItem.created_at)}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-2 rtl:space-x-reverse pt-2 border-t border-white/10">
+                      <motion.button
+                        onClick={() => router.push(`/admin/users/${userItem.id}`)}
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        عرض
+                      </motion.button>
+                      <motion.button
+                        onClick={() => router.push(`/admin/users/${userItem.id}/edit`)}
+                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded text-sm transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        تعديل
+                      </motion.button>
+                      <motion.button
+                        onClick={() => handleDeleteClick(userItem)}
+                        disabled={deleting === userItem.id}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm transition-colors disabled:opacity-50"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {deleting === userItem.id ? 'جاري...' : 'حذف'}
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
+      </motion.div>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

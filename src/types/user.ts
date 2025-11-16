@@ -4,8 +4,24 @@ export interface User {
   email: string;
   email_verified_at: string | null;
   role: 'admin' | 'user';
+  branch_id: number;
+  office_id: number;
   created_at: string;
   updated_at: string;
+  branch?: {
+    id: number;
+    name: string;
+    boss: string;
+    trName: string;
+    created_at: string;
+    updated_at: string;
+  };
+  office?: {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface CreateUserRequest {

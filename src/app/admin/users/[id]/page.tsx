@@ -268,6 +268,31 @@ export default function UserDetailsPage({ params }: PageProps) {
               </div>
             </div>
 
+            {/* Branch & Office Info */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">الفرع والمكتب</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-white/70 flex items-center">
+                    <span className="text-xl mr-2">🏢</span>
+                    الفرع:
+                  </span>
+                  <span className="text-green-300 font-medium">
+                    {userData.branch?.name || '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-white/70 flex items-center">
+                    <span className="text-xl mr-2">📋</span>
+                    المكتب:
+                  </span>
+                  <span className="text-white/80 font-medium">
+                    {userData.office?.name || '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white/5 rounded-xl p-6">
               <h3 className="text-lg font-bold text-white mb-4">إجراءات سريعة</h3>
               <div className="space-y-3">

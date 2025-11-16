@@ -39,6 +39,8 @@ export default function AdminLayout({
   const menuItems = [
     { name: "لوحة التحكم", icon: "📊", href: "/admin" },
     { name: "المستخدمين", icon: "👥", href: "/admin/users" },
+    { name: "الفروع", icon: "🏢", href: "/admin/branches" },
+    { name: "المكاتب", icon: "📋", href: "/admin/offices" },
   ];
 
   if (!user || user.role !== 'admin') {
